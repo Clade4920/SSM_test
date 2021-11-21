@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dao.ItemDao">
+    <resultMap type="bean.vo.Item" id="itemsWithGoodsVO">
+        <id property="id" column="id"/>
+        <result property="quantity" column="quantity"/>
+        <!-- 一对一关联查询 -->
+        <association property="goods" column="goodsid" javaType="bean.vo.GoodsVo"
+                     select="dao.GoodsDao.getGoodsById" />
+    </resultMap>
+    <select id="findNoIncludedItems" resultMap="itemsWithGoodsVO">
+        select * from item where id not in (select itemid from myorder_item)
+    </select>
+    <select id="findItemById" resultType="bean.vo.Item">
+        select * from item where id=#{id}
+    </select>
+<!--    &lt;!&ndash;  &ndash;&gt;-->
+<!--    <select id="getItemById" parameterType="String"-->
+<!--            resultType="bean.vo.GoodsVo">-->
+<!--        select * from goods where goodsId = #{goodsId}-->
+<!--    </select>-->
+
+    <insert id="saveItem" parameterType="bean.vo.Item" keyColumn="id" keyProperty="id" useGeneratedKeys="true">
+        insert into item (quantity,goodsid) values (#{quantity},#{ goods.goodsId})
+    </insert>
+
+    <update id="modifyItem" parameterType="bean.vo.Item">
+        UPDATE item SET quantity=#{quantity} where id=#{id}
+    </update>
+
+    <delete id="deleteItem" parameterType="Integer">
+        DELETE FROM item WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteItemsByIds" parameterType="List">
+        DELETE FROM item WHERE id in
+        <foreach collection="list" item="deletedId" index="index"
+                    open="(" separator="," close=")">
+            #{deletedId}
+        </foreach>
+    </delete>
+
+</mapper>
